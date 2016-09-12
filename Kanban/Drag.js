@@ -1,34 +1,133 @@
-﻿var lname ;
-      $(document).ready(function($) {
-			 lname = $("#DeltaPlaceHolderPageTitleInTitleArea").text().trim();
-     
-  	      $('#sideNavBox').hide();
-			$('#suiteBar').hide();
-			 
-
-          /*  $.ajax({
-			    url: _spPageContextInfo.webAbsoluteUrl +'/_api/web/Lists/GetByTitle(\'KanbanTasks\')/Items?$filter=Assigned eq ' + _spPageContextInfo.userId,
-			    method: "GET",
-			    headers: { "Accept": "application/json; odata=verbose" }, 
-			    success: function (data) {
-			console.log(data.d.results.length); 
-			    },
-			    error: function (data) {
-			        console.log(data.responseText);
-			    }
-			});
-*/
+﻿      $(document).ready(function($) {
+	      $('#sideNavBox').hide();
+		$('#suiteBar').hide();
 		
-            $('.author').click(function(e){return false;})
-            $('.author').bind("contextmenu",function(e){return false;});
-/*            $('img[id*="img_"]').each(function(){
-//            alert($(this).attr('id').split("_")[1]);
-            $(this).wrap($('<a>',{
-   			href: 'http://sharepoint/sites/PQO/Reporting/Lists/KanbanTasks/Editform.aspx?ID=' + $(this).attr('id').split("_")[1]
-			}));
+ExecuteOrDelayUntilScriptLoaded(createitems, "sp.js")
+
+function createitems()
+{
+var requestUri = _spPageContextInfo.webAbsoluteUrl + "/_api/web/getuserbyid(" + _spPageContextInfo.userId + ")";
+    var requestHeaders = { "accept": "application/json;odata=verbose" };
+    $.ajax({
+        url: requestUri,
+        contentType: "application/json;odata=verbose",
+        headers: requestHeaders,
+        success: function (data) {
+//        alert(data.d.LoginName);
+        
+        var siteUrl = "http://sharepoint/sites/PQO/SandBox/";
+            /// add prefix, this needs to be changed based on scenario
+            var accountName = data.d.LoginName;
+
+            /// make an ajax call to get the site user
+            $.ajax({
+                url: siteUrl + "_api/web/siteusers(@v)?@v='" + 
+                    encodeURIComponent(accountName) + "'",
+                method: "GET",
+                headers: { "Accept": "application/json; odata=verbose" },
+                success: function (data) {
+                    ///popup user id received from site users.
+//                    alert("Received UserId" + data.d.Id);
+						                    $.ajax({
+						    url: 'http://sharepoint/sites/PQO/SandBox/_api/web/Lists/GetByTitle(\'Draglist\')/Items?$filter=Assigned eq ' + data.d.Id,
+						    method: "GET",
+						    headers: { "Accept": "application/json; odata=verbose" }, 
+						    success: function (data) {
+						if (data.d.results.length == "0")
+						{     
+						createListItems();
+						}
+						else {
+						console.log(data.d.results.length); 
+						
+						}
+						    },
+						    error: function (data) {
+						        console.log(data.responseText);
+						    }
+						});
+
+                },
+                error: function (data) {
+                    console.log(JSON.stringify(data));
+                }
             });
-*/           
-            $("#analysis,#construction,#acceptance").sortable({    
+        
+        },
+        error: function (data) {
+        console.log(data.responseText);
+    }
+    });
+
+}
+
+function createListItems() {
+    
+    var itemArray = [];
+    var SiteURL = "http://sharepoint/sites/PQO/Sandbox/" ;
+    var clientContext = new SP.ClientContext(SiteURL);
+    var oList = clientContext.get_web().get_lists().getByTitle('DragList');
+	var userid = _spPageContextInfo.userId;
+	var requestUri = _spPageContextInfo.webAbsoluteUrl + "/_api/web/getuserbyid(" + userid + ")";
+    var requestHeaders = { "accept": "application/json;odata=verbose" };
+    $.ajax({
+        url: requestUri,
+        contentType: "application/json;odata=verbose",
+        headers: requestHeaders,
+        success: onSuccess,
+        error: onError
+    });
+    function onSuccess(data, request) {
+        var Logg = data.d;
+ 
+        //get login name
+        var loginName = Logg.Title ;
+        //                alert(loginName);
+        var litems = [["Kanban Task", "TO DO (Backlog)","This is in Backlog"]]
+        
+            for(var i = 0; i< 1; i++){
+    
+        var itemCreateInfo = new SP.ListItemCreationInformation();
+        var oListItem = oList.addItem(itemCreateInfo);  
+        oListItem.set_item('Title', litems[i][0]);  
+        oListItem.set_item('ColumnType', litems[i][1]);
+	    oListItem.set_item('Note', litems[i][2]);
+
+        var PMT = SP.FieldUserValue.fromUser(loginName);
+        oListItem.set_item('Assigned', PMT);  
+
+        oListItem.update();
+        itemArray[i] = oListItem;
+        clientContext.load(itemArray[i]);
+    }
+    
+		clientContext.executeQueryAsync(onQuerySucceeded, onQueryFailed);
+
+//        var loginName = Logg.LoginName.split('|')[1];
+        //get display name
+//        alert(Logg.Title);
+    }
+    function onError(error) {
+        alert("error");
+    }         
+    
+}
+
+function onQuerySucceeded() {
+
+//    alert('Items created');
+location.reload();
+}
+
+function onQueryFailed(sender, args) {
+
+    alert('Request failed. ' + args.get_message() + '\n' + args.get_stackTrace());
+}
+		
+            $('.contact-item').click(function(e){return false;})
+            $('.contact-item').bind("contextmenu",function(e){return false;});
+           
+            $("#phone,#meeting,#email,#proposal,#other").sortable({    
                   connectWith: ".actionColumn",
                   items:"ul",
                   placeholder: "contact-item-highlight",
@@ -38,118 +137,31 @@
                   updateListItem(ui.item.attr('id').split('_')[1] ,data , ui.item)
                   }  
             }).disableSelection();
-              $("#Done,#backlog").sortable({    
-				  connectWith: ".actionColumn",
-                  items:"ul",
-                  placeholder: "contact-item-highlight",
-                  receive: function( event, ui ) {
-                  var thisThing = $(event.target)
-                  var data = thisThing.attr('data')
-                  updateListItem1(ui.item.attr('id').split('_')[1] ,data , ui.item )
-                  }  
-            }).disableSelection();
-
-                       var updateListItem1 = function(item,data,etarg){
+           
+            var updateListItem = function(item,data,etarg){
                   position = etarg.position();
-//                  alert(data.split('-')[0]);
-//                  alert(item);
                   var outputText = 'Item Successfully Updated';
-
+                  if(data == "DOING (Work InProgress)")
+                  {var outputText = 'CONGRATS ! You have started working on this task. Now, please move it to done';}
+                  if(data == "DONE")
+                  {var outputText = 'You have completed this task. Want to learn more, Please sign up for training';}
+                  
+ 
                   $().SPServices({
                         operation: "UpdateListItems",
                         batchCmd: "Update",
-                        listName: lname, //Make sure to use the name of your list
-                        valuepairs: [["Status",data.split('-')[0]]],
+                        listName: "DragList", //Make sure to use the name of your list
+                        valuepairs: [["ColumnType",data]],
                         ID: item,
                         completefunc: function(xData, Status) {
                               if(Status != 'success'){ outputText = 'There was an error processing your request.'}
                               $('#output').css({'left':position.left,'top':position.top+75})
                                     .text(outputText)
-                                    .fadeIn(200)
-                                    .delay(500)
-                                    .fadeOut(200);       
-                          
+                                    .fadeIn(900)
+                                    .delay(2000)
+                                    .fadeOut(900);       
                         }
                   });  
 
             }
-
-           
-           
-            var updateListItem = function(item,data,etarg){
-                  position = etarg.position();
-                  
-               //   alert(data.split('-')[0]);
-               //   alert(data.split('-')[1]);
-                  var outputText = 'Item Successfully Updated';
-
-                  $().SPServices({
-                        operation: "UpdateListItems",
-                        batchCmd: "Update",
-                        listName: lname, //Make sure to use the name of your list
-                        valuepairs: [["Status",data.split('-')[0]],["Service",data.split('-')[1]]],
-                        ID: item,
-                        completefunc: function(xData, Status) {
-                              if(Status != 'success'){ outputText = 'There was an error processing your request.'}
-                            $('#output').css({'left':position.left,'top':position.top+75})
-                                    .text(outputText)
-                                    .fadeIn(200)
-                                    .delay(500)
-                                    .fadeOut(200);       
-                        }
-                  });  
-
-            }
-            
       });              
-
-
-            //function to open pages in a dialog
-function openInDialog1(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
-{
-var url = window.location.href;
-var url_parts = url.replace(/\/\s*$/,'').split('/'); 
-url_parts.shift(); 
-
-var pUrl = "/sites/PQO/Kanban/Lists/" + url_parts[url_parts.length - 2] + "/EditForm.aspx?ID=" + pageUrl;
-var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
-showClose: dlgShowClose
-};
-if(needCallbackFunction)
-{
-options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
-}
-SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
-}
-
-
-            //function to open pages in a dialog
-function openInDialog(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
-{
-var url = window.location.href;
-var url_parts = url.replace(/\/\s*$/,'').split('/'); 
-url_parts.shift(); 
-
-var pUrl = "/sites/PQO/Kanban/Lists/" + url_parts[url_parts.length - 2] + pageUrl ;
-var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
-showClose: dlgShowClose
-};
-if(needCallbackFunction)
-{
-options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
-}
-SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
-}
-
-function CloseDialogCallback(dialogResult, returnValue)
-{
-if(dialogResult == SP.UI.DialogResult.OK)
-{
-SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.RefreshPage", SP.UI.DialogResult.OK);
-}
-else if(dialogResult == SP.UI.DialogResult.cancel)
-{}
-else
-{}
-}
-    
