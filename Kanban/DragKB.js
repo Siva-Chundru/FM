@@ -1,14 +1,12 @@
-﻿		var lname ;
-		var lanme1 ;
+﻿var lname ;
+var lanme1 ;
       $(document).ready(function($) {
 			 lname = $("#DeltaPlaceHolderPageTitleInTitleArea").text().trim();
-/*
 	     var url = window.location.href;
 		var url_parts = url.replace(/\/\s*$/,'').split('/'); 
 		url_parts.shift(); 
-//		lname1 = url_parts[url_parts.length - 2];
-		lname1 = url_parts[6];
-*/
+		lname1 = url_parts[url_parts.length - 2];
+
   	      $('#sideNavBox').hide();
 			$('#suiteBar').hide();
 			 
@@ -33,49 +31,6 @@
             $("#backlog").toggle();
         });
 
- $.ajax({
-        url: _spPageContextInfo.webServerRelativeUrl +"/_api/web/lists/GetByTitle('" + lname + "')/fields?$filter=EntityPropertyName eq 'Category'",
-        type: "GET",
-        headers: {
-            "accept": "application/json;odata=verbose",
-        },
-        success: function (data) {
-         var url_parts = data.d.results[0].Scope.split('/');
-         lname1 = url_parts[url_parts.length - 1]; 
-			var option = '<option value="0">All Items</option>';
-			for (var i=1;i <= data.d.results[0].Choices.results.length;i++){
-			   option += '<option value="'+ i + '">' + data.d.results[0].Choices.results[i-1] + '</option>';
-			}
-			$('#category').append(option);
-			
-			var category = getParameterByName('Category');
-				  if(category == "*")
-				  {
-				  category = "*";
-				  }
-				  
-				  $("#category option").each(function() {
-				  if($(this).text() == category) {
-				    $(this).attr('selected', 'selected');            
-				  }                        
-				});
-
-				$("#category").change(function () {
-				  var cat = $('#category option:selected').text();
-				  if(cat == "All Items")
-				  {
-				  cat = "*";
-				  }
-				            window.open( _spPageContextInfo.webServerRelativeUrl + "/Lists/"+lname1+"/KanbanBoard.aspx?Category=" + cat ,"_self");
-				  });
-
-			
-        },
-        error: function (error) {
-            alert(JSON.stringify(error));
-        }
-
-    });
 			$('#kanbantitle').text($('#DeltaPlaceHolderPageTitleInTitleArea').text());
 					
             $('.author').click(function(e){return false;})
@@ -163,56 +118,58 @@
       });              
 
 
-			function openInDialog1(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
-			{
-			
-			var pUrl = _spPageContextInfo.webServerRelativeUrl + "/Lists/" + lname1 + "/EditForm.aspx?ID=" + pageUrl;
-			var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
-			showClose: dlgShowClose
-			};
-			if(needCallbackFunction)
-			{
-			options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
-			}
-			SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
-			}
-			
-			
-			function openInDialog(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
-			{
-			
-			var pUrl = _spPageContextInfo.webServerRelativeUrl + "/Lists/" + lname1 + pageUrl ;
-			var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
-			showClose: dlgShowClose
-			};
-			if(needCallbackFunction)
-			{
-			options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
-			}
-			SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
-			}
-			
-			function CloseDialogCallback(dialogResult, returnValue)
-			{
-			if(dialogResult == SP.UI.DialogResult.OK)
-			{
-			SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.RefreshPage", SP.UI.DialogResult.OK);
-			}
-			else if(dialogResult == SP.UI.DialogResult.cancel)
-			{}
-			else
-			{}
-			}
-			
-			function getParameterByName(name, url) {
-			    if (!url) url = window.location.href;
-			    name = name.replace(/[\[\]]/g, "\\$&");
-			    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-			        results = regex.exec(url);
-			    if (!results) return null;
-			    if (!results[2]) return '';
-			    return decodeURIComponent(results[2].replace(/\+/g, " "));
-			}
+            //function to open pages in a dialog
+function openInDialog1(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
+{
+
+var pUrl = "/sites/PQO/Kanban/Lists/" + lname1 + "/EditForm.aspx?ID=" + pageUrl;
+var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
+showClose: dlgShowClose
+};
+if(needCallbackFunction)
+{
+options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
+}
+SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
+}
+
+
+            //function to open pages in a dialog
+function openInDialog(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
+{
+
+var pUrl = "/sites/PQO/Kanban/Lists/" + lname1 + pageUrl ;
+var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
+showClose: dlgShowClose
+};
+if(needCallbackFunction)
+{
+options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
+}
+SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
+}
+
+function CloseDialogCallback(dialogResult, returnValue)
+{
+if(dialogResult == SP.UI.DialogResult.OK)
+{
+SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.RefreshPage", SP.UI.DialogResult.OK);
+}
+else if(dialogResult == SP.UI.DialogResult.cancel)
+{}
+else
+{}
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
 
 
     

@@ -1,14 +1,7 @@
-﻿		var lname ;
-		var lanme1 ;
+﻿var lname ;
       $(document).ready(function($) {
 			 lname = $("#DeltaPlaceHolderPageTitleInTitleArea").text().trim();
-/*
-	     var url = window.location.href;
-		var url_parts = url.replace(/\/\s*$/,'').split('/'); 
-		url_parts.shift(); 
-//		lname1 = url_parts[url_parts.length - 2];
-		lname1 = url_parts[6];
-*/
+     
   	      $('#sideNavBox').hide();
 			$('#suiteBar').hide();
 			 
@@ -34,14 +27,13 @@
         });
 
  $.ajax({
-        url: _spPageContextInfo.webServerRelativeUrl +"/_api/web/lists/GetByTitle('" + lname + "')/fields?$filter=EntityPropertyName eq 'Category'",
+        url: "http://sharepoint/sites/PQO/Kanban/_api/web/lists/GetByTitle('" + lname + "')/fields?$filter=EntityPropertyName eq 'Category'",
         type: "GET",
         headers: {
             "accept": "application/json;odata=verbose",
         },
         success: function (data) {
-         var url_parts = data.d.results[0].Scope.split('/');
-         lname1 = url_parts[url_parts.length - 1]; 
+           
 			var option = '<option value="0">All Items</option>';
 			for (var i=1;i <= data.d.results[0].Choices.results.length;i++){
 			   option += '<option value="'+ i + '">' + data.d.results[0].Choices.results[i-1] + '</option>';
@@ -66,7 +58,7 @@
 				  {
 				  cat = "*";
 				  }
-				            window.open( _spPageContextInfo.webServerRelativeUrl + "/Lists/"+lname1+"/KanbanBoard.aspx?Category=" + cat ,"_self");
+				            window.open("http://sharepoint/sites/PQO/Kanban/Lists/Test/KanbanBoard.aspx?Category=" + cat ,"_self")
 				  });
 
 			
@@ -163,56 +155,64 @@
       });              
 
 
-			function openInDialog1(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
-			{
-			
-			var pUrl = _spPageContextInfo.webServerRelativeUrl + "/Lists/" + lname1 + "/EditForm.aspx?ID=" + pageUrl;
-			var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
-			showClose: dlgShowClose
-			};
-			if(needCallbackFunction)
-			{
-			options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
-			}
-			SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
-			}
-			
-			
-			function openInDialog(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
-			{
-			
-			var pUrl = _spPageContextInfo.webServerRelativeUrl + "/Lists/" + lname1 + pageUrl ;
-			var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
-			showClose: dlgShowClose
-			};
-			if(needCallbackFunction)
-			{
-			options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
-			}
-			SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
-			}
-			
-			function CloseDialogCallback(dialogResult, returnValue)
-			{
-			if(dialogResult == SP.UI.DialogResult.OK)
-			{
-			SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.RefreshPage", SP.UI.DialogResult.OK);
-			}
-			else if(dialogResult == SP.UI.DialogResult.cancel)
-			{}
-			else
-			{}
-			}
-			
-			function getParameterByName(name, url) {
-			    if (!url) url = window.location.href;
-			    name = name.replace(/[\[\]]/g, "\\$&");
-			    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
-			        results = regex.exec(url);
-			    if (!results) return null;
-			    if (!results[2]) return '';
-			    return decodeURIComponent(results[2].replace(/\+/g, " "));
-			}
+            //function to open pages in a dialog
+function openInDialog1(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
+{
+var url = window.location.href;
+var url_parts = url.replace(/\/\s*$/,'').split('/'); 
+url_parts.shift(); 
+
+var pUrl = "/sites/PQO/Kanban/Lists/" + url_parts[url_parts.length - 2] + "/EditForm.aspx?ID=" + pageUrl;
+var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
+showClose: dlgShowClose
+};
+if(needCallbackFunction)
+{
+options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
+}
+SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
+}
+
+
+            //function to open pages in a dialog
+function openInDialog(dlgWidth, dlgHeight, dlgAllowMaximize,dlgShowClose,needCallbackFunction, pageUrl)
+{
+var url = window.location.href;
+var url_parts = url.replace(/\/\s*$/,'').split('/'); 
+url_parts.shift(); 
+
+var pUrl = "/sites/PQO/Kanban/Lists/" + url_parts[url_parts.length - 2] + pageUrl ;
+var options = { url: pUrl, width: dlgWidth, height: dlgHeight, allowMaximize: dlgAllowMaximize,
+showClose: dlgShowClose
+};
+if(needCallbackFunction)
+{
+options.dialogReturnValueCallback = Function.createDelegate(null,CloseDialogCallback);
+}
+SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.showModalDialog", options);
+}
+
+function CloseDialogCallback(dialogResult, returnValue)
+{
+if(dialogResult == SP.UI.DialogResult.OK)
+{
+SP.SOD.execute("sp.ui.dialog.js", "SP.UI.ModalDialog.RefreshPage", SP.UI.DialogResult.OK);
+}
+else if(dialogResult == SP.UI.DialogResult.cancel)
+{}
+else
+{}
+}
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
 
 
     

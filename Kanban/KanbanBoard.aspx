@@ -97,7 +97,6 @@ display: none;
       .actionColumn:first-child ul { float:left; margin-right:9px;}
       .actionColumn:first-child ul.contact-item-highlight { float:left; }
       .contact-item li:first-child{
-            font-weight:bold;
             padding-bottom:5px;
             margin-bottom:5px;
             color:#000;
